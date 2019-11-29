@@ -1,18 +1,14 @@
-import React,{useEffect,useState} from 'react';
-import axios from 'axios';
-import './App.css';
-
+import React from 'react';
+import Navbar from './components/Navbar';
+import Home from './components/Home';
+import Footer from './components/Footer';
 function App() {
   
-  const [state,setState]=useState([]);
-  useEffect(async()=>{
-      const fetch = await axios.get('https://movie-mb-api.herokuapp.com/home');
-      const data = fetch.data;
-      setState(data);
-  },[])
   return (
-    <div className="App">
-        
+    <div >
+        <Navbar/>
+        <Home/>
+        <Footer/>
     </div>
   );
 }
