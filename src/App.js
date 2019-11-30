@@ -1,15 +1,14 @@
 import React from 'react';
-import Navbar from './components/Navbar';
 import Home from './components/Home';
-import Footer from './components/Footer';
+import Detail from './components/Detail';
+import {Switch,Route} from "react-router-dom";
 function App() {
   
   return (
-    <div >
-        <Navbar/>
-        <Home/>
-        <Footer/>
-    </div>
+    <Switch>
+      <Route exact path='/' component={Home}/>
+      <Route exact path='/movie/:id' component={Detail}/>
+    </Switch>
   );
 }
 
