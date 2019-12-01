@@ -6,6 +6,7 @@ import '../styles/Home.css';
 import heart from '../media/love.png';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import {Link} from 'react-router-dom';
 
 const Home = ()=>{
 
@@ -40,7 +41,7 @@ const Home = ()=>{
                     const id = uuid();
                     return(
 
-                       
+                       <Link to={`/movie/${idx.id}`}>
                             <div className="card  hvr-float  p-0" key={id}>                 
                                 <img className="card-img-top" src={`${movieThumnailDoamin}${idx.poster_path}`} alt={idx.title}/>                     
                                     <div className="card-body">                               
@@ -50,7 +51,7 @@ const Home = ()=>{
                                             <p className="card-text mt-1"><small className="text-muted">Release Date {moment(idx.release_date).format('LL')}</small></p>
                                     </div>                                                
                             </div>
-    
+                        </Link>
                         )
                 }
                 )}                    
