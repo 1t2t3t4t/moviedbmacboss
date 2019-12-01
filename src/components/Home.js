@@ -7,10 +7,11 @@ import heart from '../media/love.png';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import {Link} from 'react-router-dom';
+import { Collapse, Button, CardBody, Card,UncontrolledCollapse } from 'reactstrap';
 
 const Home = ()=>{
 
-    const [trending,setTrending] = useState([]);
+    const [trending,setTrending] = useState();
 
     const [trendingPage, setTrendingPage] = useState(1);
     
@@ -18,19 +19,30 @@ const Home = ()=>{
 
     const [upComingPage, setUpcomingPage] = useState(1);
 
-    
+    const [isUpComingOpen,setUpComingOpen] = useState();
+
+    const toggleUpComing = (id) =>{
+        setUpComingOpen({...isUpComingOpen,[id]: true? false: true})
+    }
+
+
+
     useEffect(()=>{
         const fetchData =async ()=>{
 
             const trendResponse = await axios.get(`https://movie-mb-api.herokuapp.com/home/trending?page=${trendingPage}&limit=6`);
             setTrending(trendResponse.data.results);
-            console.log('response', trendResponse);
+
             const upcomingResponse = await axios.get(`https://movie-mb-api.herokuapp.com/home/upcoming?page=${upComingPage}&limit=6`);
             setUpcoming(upcomingResponse.data.results);
-            console.log(upcomingResponse.data.results);
+            
+           
         }
         fetchData();
+        upComing && upComing.map(idx=>setUpComingOpen({[idx.id]:false}));
+
     },[trendingPage,upComingPage])
+    //console.log(upComing)
 
     const renderTrending = () =>{
         const movieThumnailDoamin = 'https://image.tmdb.org/t/p/w500';
@@ -39,19 +51,29 @@ const Home = ()=>{
                 {trending.map((idx)=>{
                     const score = Math.floor(idx.vote_average/2);
                     const id = uuid();
-                    return(
+                    const shortOverview = idx.overview.split('').slice(0,100).join('');
 
-                       <Link to={`/movie/${idx.id}`}>
+                    return(
+                    
+                       
                             <div className="card  hvr-float  p-0" key={id}>                 
                                 <img className="card-img-top" src={`${movieThumnailDoamin}${idx.poster_path}`} alt={idx.title}/>                     
                                     <div className="card-body">                               
-                                            <h5 className="card-title">{idx.title}</h5>
-                                            <p className="card-text">{idx.overview}</p>   
+                                            <h5 className="card-title"><Link to={`/movie/${idx.id}`} className='text-dark'>{idx.title}</Link></h5>
+                                            <p className="card-text">{shortOverview}...  <a><button className='as-text' id={`toggler${idx.id}`}>Readmore</button></a></p>   
+                                            
+                                            <UncontrolledCollapse toggler={`#toggler${idx.id}`}>
+                                                <Card>
+                                                    <CardBody>
+                                                    {idx.overview}
+                                                    </CardBody>
+                                                </Card>
+                                                </UncontrolledCollapse> 
                                             {Array(score).fill(<img className='mr-1' src={heart} style={{width:'1rem'}}/>)}
                                             <p className="card-text mt-1"><small className="text-muted">Release Date {moment(idx.release_date).format('LL')}</small></p>
                                     </div>                                                
                             </div>
-                        </Link>
+                       
                         )
                 }
                 )}                    
@@ -67,19 +89,31 @@ const Home = ()=>{
                 {upComing.map((idx)=>{
                     const score = Math.floor(idx.vote_average/2);
                     const id = uuid();
+                    const shortOverview = idx.overview.split('').slice(0,100).join('');
+                   
                     return(
 
-                       
+                        
                             <div className="card  hvr-float  p-0" key={id}>                 
                                 <img className="card-img-top" src={`${movieThumnailDoamin}${idx.poster_path}`} alt={idx.title}/>                     
-                                    <div className="card-body">                               
-                                            <h5 className="card-title">{idx.title}</h5>
-                                            <p className="card-text">{idx.overview}</p>   
+                                    <div className="card-body">  
+
+                                            <h5 className="card-title"><Link to={`/movie/${idx.id}`} className='text-dark'>{idx.title}</Link></h5>
+                                            <p className="card-text">{shortOverview}...  <a><button className='as-text' id={`toggler${idx.id}`}>Readmore</button></a></p>   
+                                            
+                                                <UncontrolledCollapse toggler={`#toggler${idx.id}`}>
+                                                    <Card>
+                                                        <CardBody>
+                                                        {idx.overview}
+                                                        </CardBody>
+                                                    </Card>
+                                                    </UncontrolledCollapse>  
+                                            
                                             {Array(score).fill(<img className='mr-1' src={heart} style={{width:'1rem'}}/>)}
                                             <p className="card-text mt-1"><small className="text-muted">Release Date {moment(idx.release_date).format('LL')}</small></p>
                                     </div>                                                
                             </div>
-    
+                        
                         )
                 }
                 )}                    
@@ -155,6 +189,9 @@ const Home = ()=>{
     return(
         <div>
             <Navbar/>
+            
+            {trending && upComing &&
+            
             <div className='container mt-5'>
                 <div className='d-flex'>
                     <h3 className='mr-auto title'>Now Trending</h3>
@@ -169,7 +206,14 @@ const Home = ()=>{
                 {renderUpcoming()}
 
             </div>
+            }
+            <div>
+               
+                </div>
             <Footer/>
+            <div>
+    
+  </div>
         </div>
 
     );
