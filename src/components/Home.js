@@ -7,11 +7,11 @@ import heart from '../media/love.png';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import {Link} from 'react-router-dom';
-import { Collapse, Button, CardBody, Card,UncontrolledCollapse } from 'reactstrap';
+import { CardBody, Card,UncontrolledCollapse,UncontrolledTooltip,Spinner } from 'reactstrap';
 
 const Home = ()=>{
 
-    const [trending,setTrending] = useState();
+    const [trending,setTrending] = useState([]);
 
     const [trendingPage, setTrendingPage] = useState(1);
     
@@ -19,11 +19,10 @@ const Home = ()=>{
 
     const [upComingPage, setUpcomingPage] = useState(1);
 
-    const [isUpComingOpen,setUpComingOpen] = useState();
+    const [trendingLoading,setTrendingLoading] = useState(false);
 
-    const toggleUpComing = (id) =>{
-        setUpComingOpen({...isUpComingOpen,[id]: true? false: true})
-    }
+    const [upComingLoading,setUpComingLoading] = useState(false);
+
 
 
 
@@ -36,13 +35,31 @@ const Home = ()=>{
             const upcomingResponse = await axios.get(`https://movie-mb-api.herokuapp.com/home/upcoming?page=${upComingPage}&limit=6`);
             setUpcoming(upcomingResponse.data.results);
             
-           
+           setTrendingLoading(true);
+           setUpComingLoading(true);
         }
         fetchData();
-        upComing && upComing.map(idx=>setUpComingOpen({[idx.id]:false}));
 
     },[trendingPage,upComingPage])
     //console.log(upComing)
+
+    const renderLoading = ()=>{
+        const arr = ['','','','','','']; // for array of 6 items
+        return (
+            <div className='row mt-4'>
+                {arr.map(()=> { 
+                    return(
+                    <div className='col-4 text-center align-self-center' style={{height:'400px'}}>
+                       
+                            <Spinner  className='align-middle text-center 'style={{ width: '5rem', height: '5rem',marginTop:'50%' }} />
+                        
+                    </div>
+                )
+                } ) }
+            </div>
+        )
+    }
+
 
     const renderTrending = () =>{
         const movieThumnailDoamin = 'https://image.tmdb.org/t/p/w500';
@@ -59,8 +76,11 @@ const Home = ()=>{
                             <div className="card  hvr-float  p-0" key={id}>                 
                                 <img className="card-img-top" src={`${movieThumnailDoamin}${idx.poster_path}`} alt={idx.title}/>                     
                                     <div className="card-body">                               
-                                            <h5 className="card-title"><Link to={`/movie/${idx.id}`} className='text-dark'>{idx.title}</Link></h5>
-                                            <p className="card-text">{shortOverview}...  <a><button className='as-text' id={`toggler${idx.id}`}>Readmore</button></a></p>   
+                                            <h5 className="card-title" ><Link to={`/movie/${idx.id}`} className='text-dark' id={`UncontrolledTooltipExample${idx.id}`}>{idx.title} </Link></h5>
+                                                <UncontrolledTooltip placement="right" target={`UncontrolledTooltipExample${idx.id}`}>
+                                                    Open new page
+                                                </UncontrolledTooltip>
+                                            <p className="card-text">{shortOverview}...  <a><button className='as-text' id={`toggler${idx.id}`}><strong>Readmore</strong></button></a></p>   
                                             
                                             <UncontrolledCollapse toggler={`#toggler${idx.id}`}>
                                                 <Card>
@@ -75,8 +95,7 @@ const Home = ()=>{
                             </div>
                        
                         )
-                }
-                )}                    
+                })}                    
             </div>
         )                    
     }
@@ -98,8 +117,12 @@ const Home = ()=>{
                                 <img className="card-img-top" src={`${movieThumnailDoamin}${idx.poster_path}`} alt={idx.title}/>                     
                                     <div className="card-body">  
 
-                                            <h5 className="card-title"><Link to={`/movie/${idx.id}`} className='text-dark'>{idx.title}</Link></h5>
-                                            <p className="card-text">{shortOverview}...  <a><button className='as-text' id={`toggler${idx.id}`}>Readmore</button></a></p>   
+                                            <h5 className="card-title" ><Link to={`/movie/${idx.id}`} className='text-dark' id={`UncontrolledTooltipExample${idx.id}`}>{idx.title}</Link></h5>
+                                                <UncontrolledTooltip placement="right" target={`UncontrolledTooltipExample${idx.id}`}>
+                                                    Open new page
+                                                </UncontrolledTooltip>
+
+                                            <p className="card-text">{shortOverview}...  <a><button className='as-text' id={`toggler${idx.id}`}><strong>Readmore</strong></button></a></p>   
                                             
                                                 <UncontrolledCollapse toggler={`#toggler${idx.id}`}>
                                                     <Card>
@@ -122,10 +145,12 @@ const Home = ()=>{
     }
 
     const renderTrendingPagination = () =>{
+        const disablePrevious = trendingPage === 1 ? 'page-item disabled' : 'page-item'
         return (
                     <nav className='mr-2'>
                         <ul className='pagination'>
-                            <li className='page-item'><a className='page-link' onClick={handleTrendPaginationPreviousClick}> {`<`} </a></li>
+                            <li className={disablePrevious}><a className='page-link' onClick={handleTrendPaginationPreviousClick}> {`<`} </a></li>
+                            <li className='page-item'><a className='page-link'> {trendingPage}  </a></li>
                             <li className='page-item'><a className='page-link' onClick={handleTrendPaginationNextClick}> > </a></li>
                         </ul>
                     </nav>
@@ -142,7 +167,8 @@ const Home = ()=>{
           let page = trendingPage;
           page--;
           setTrendingPage(page);
-      }
+          setTrendingLoading(false);
+        }
       
     }
 
@@ -150,16 +176,19 @@ const Home = ()=>{
         let page = trendingPage;
         page++;
         setTrendingPage(page);
-        
+        setTrendingLoading(false);
+
       }
 
 
     // For upcoming section
       const renderUpcomingPagination = () =>{
+        const disablePrevious = upComingPage === 1 ? 'page-item disabled' : 'page-item'
         return (
                     <nav className='mr-2'>
                         <ul className='pagination'>
-                            <li className='page-item'><a className='page-link' onClick={handleUpcomingPaginationPreviousClick}> {`<`} </a></li>
+                            <li className={disablePrevious}><a className='page-link' onClick={handleUpcomingPaginationPreviousClick}> {`<`} </a></li>
+                            <li className='page-item'><a className='page-link'> {upComingPage}  </a></li>
                             <li className='page-item'><a className='page-link' onClick={handleUpComingPaginationNextClick}> > </a></li>
                         </ul>
                     </nav>
@@ -175,45 +204,42 @@ const Home = ()=>{
           let page = upComingPage;
           page--;
           setUpcomingPage(page);
+          setUpComingLoading(false);
       }
     }
 
     const handleUpComingPaginationNextClick = () =>{
         let page = upComingPage;
         page++;
-        setUpcomingPage(page);        
+        setUpcomingPage(page);       
+        setUpComingLoading(false); 
       }
 
     
 
     return(
-        <div>
+        <div className=''>
             <Navbar/>
             
-            {trending && upComing &&
             
-            <div className='container mt-5'>
-                <div className='d-flex'>
-                    <h3 className='mr-auto title'>Now Trending</h3>
-                    {renderTrendingPagination()}
+            
+                <div className='container mt-5'>
+                        <div className='d-flex'>
+                            <h3 className='mr-auto title'>Now Trending</h3>
+                            {trending && renderTrendingPagination()}
+                        </div>
+                            {trendingLoading? renderTrending() : renderLoading() }
+
+                        <div className='d-flex'>
+                            <h3 className='mr-auto title'>Upcoming</h3>
+                            {upComing && renderUpcomingPagination()}
+                         </div>
+                        {upComingLoading? renderUpcoming() : renderLoading()}
+
                 </div>
-                {renderTrending()}
-
-            <div className='d-flex'>
-                <h3 className='mr-auto title'>Upcoming</h3>
-                {renderUpcomingPagination()}
-            </div>
-                {renderUpcoming()}
-
-            </div>
-            }
-            <div>
                
-                </div>
-            <Footer/>
-            <div>
-    
-  </div>
+
+            
         </div>
 
     );
